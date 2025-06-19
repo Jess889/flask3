@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clasificador de Insectos</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --background-color: #f0f4f7;
+            --card-color: #ffffff;
+            --text-color: #333333;
+            --error-color: #e74c3c;
+            --success-color: #2ecc71;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: var(--card-color);
+            border-radius: 15px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-10px);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 2.5em;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 8px rgba(52, 152, 219, 0.2);
+        }
+
+        button[type="submit"] {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button[type="submit"]:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        button[type="submit"]:active {
+            transform: translateY(0);
+        }
+
+        #resultado {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .success {
+            background-color: var(--success-color);
+            color: #ffffff;
+            border-left: 5px solid #27ae60;
+        }
+
+        .error {
+            background-color: var(--error-color);
+            color: #ffffff;
+            border-left: 5px solid #c0392b;
+        }
+
+        .info-text {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+            margin-bottom: 25px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Clasificador de Insectos</h1>
+        <p class="info-text">Introduce las características del insecto para clasificarlo</p>
+        
+        <form id="formulario" onsubmit="clasificarInsecto(event)">
+            <div class="form-group">
+                <label for="abdomen">Longitud del Abdomen (mm):</label>
+                <input type="text" id="abdomen" name="abdomen" placeholder="Ej. 5.2" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="antena">Longitud de las Antenas (mm):</label>
+                <input type="text" id="antena" name="antena" placeholder="Ej. 3.7" required>
+            </div>
+            
+            <button type="submit">Clasificar Insecto</button>
+        </form>
+        
+        <div id="resultado"></div>
+    </div>
+
+    <script>
+        function clasificarInsecto(event) {
+            event.preventDefault();
+            const abdomen = document.getElementById('abdomen').value;
+            const antena = document.getElementById('antena').value;
+            const resultado = document.getElementById('resultado');
+
+            // Mostrar estado de carga
+            resultado.className = '';
+            resultado.innerText = 'Analizando insecto...';
+            
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `abdomen=${abdomen}&antena=${antena}`,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    resultado.innerText = 'Error: ' + data.error;
+                    resultado.className = 'error';
+                } else {
+                    resultado.innerText = 'Resultado: El insecto es una ' + data.categoria;
+                    resultado.className = 'success';
+                }
+            })
+            .catch(error => {
+                resultado.innerText = 'Error en la conexión con el servidor';
+                resultado.className = 'error';
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
